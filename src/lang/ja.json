@@ -14,7 +14,7 @@
 		"Wild": "ワイルド",
 		"Ace": "エース（Ace）",
 		"WildDie": "ワイルドダイス",
-		"ExplodingDie": "降り足しダイス",
+		"ExplodingDie": "振り足しダイス",
 		"PlusOneDie": "+1d",
 		"MinusOneDie": "-1d",
 		"PlusOneDieLong": "ダイス面数を増やす",
@@ -32,8 +32,8 @@
 				"hint": "チャットに追加される計算式です。"
 			},
 			"Row": {
-				"name": "列",
-				"hint": "ボタンが配置される列を設定します。"
+				"name": "行",
+				"hint": "ボタンが配置される行を設定します。"
 			},
 			"Image": {
 				"name": "画像"
@@ -53,6 +53,19 @@
 		},
 
 		"DiceRows": {
+			"compactMode": {
+				"label": "コンパクトモード",
+				"hint": "追加のダイス行を無効化し、元々2行分の表示を1行にまとめます。"
+			},
+			"hideNumberInput": {
+				"label": "数値入力を非表示"
+			},
+			"hideNumberButtons": {
+				"label": "+/- ボタンを非表示"
+			},
+			"hideRollButton": {
+				"label": "ロールボタンを非表示"
+			},
 			"Instruction1": "編集したいダイスボタンをクリック。 削除したいダイスボタンを右クリック。"
 		},
 
@@ -64,7 +77,7 @@
 
 		"SETTINGS": {
 			"DiceCreator": "ダイスメーカー",
-			"DiceRowSettings": "ダイスの列編集",
+			"DiceRowSettings": "ダイスボタン編集",
 			"autoOpenPopout": {
 				"name": "ポップアウトを自動で開く",
 				"hint": "ページのロード時にDice Trayポップアウトを自動で開きます。"
@@ -74,12 +87,12 @@
 				"hint": "チャットメッセージの下にダイス･トレイを表示します (再読み込みが必要です)｡"
 			},
 			"hideAdv": {
-				"name": "追加ボタンを非表示",
+				"name": "エクストラボタンを非表示",
 				"hint": "KH/KLボタンを非表示にします。"
 			},
 			"popout": {
-				"name": "Dice Trayをポップアウトするボタンを追加",
-				"hint": "Dice Trayポップアウトを開閉するボタンをコントロールバーに追加します。キーバインドを設定することでもポップアウトを開閉できます。",
+				"name": "Dice Trayポップアウトボタン",
+				"hint": "Dice Trayポップアウトを開閉するボタンをコントロールバーに追加します。ショートカットを設定することでもポップアウトを開閉できます。",
 				"options": {
 					"all": "全コントロール"
 				}
@@ -90,6 +103,13 @@
 				"options": {
 					"decrease": "デフォルト (ダイス減少)",
 					"roll": "1つのダイスをロール"
+				}
+			},
+			"PF2E": {
+				"flatCheckLabel": "{dc} {text}",
+				"flatCheck": {
+					"name": "平目判定ボタンを追加",
+					"hint": "幸運/不運ボタンをDC 5/11の平目判定ボタンに置き換えます。"
 				}
 			},
 			"SWADE": {
