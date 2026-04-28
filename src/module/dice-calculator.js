@@ -1,5 +1,6 @@
 import * as keymaps from "./maps/_module.js";
 
+import { getChatInputAnchor } from "./chat-compat.js";
 import { KEYS } from "./maps/_keys.js";
 import { registerSettings } from "./settings.js";
 
@@ -74,7 +75,8 @@ function getProviderString(regex) {
 }
 
 function moveDiceTray() {
-	const inputElement = document.getElementById("chat-message");
+	const inputElement = getChatInputAnchor();
+	if (!inputElement || !CONFIG.DICETRAY.element) return;
 	inputElement.insertAdjacentElement("afterend", CONFIG.DICETRAY.element);
 }
 
