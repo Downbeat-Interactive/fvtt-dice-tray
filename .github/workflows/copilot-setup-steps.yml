@@ -1,3 +1,0 @@
-- name: Run Copilot Agent
-  env:
-    GITHUB_TOKEN: ${{ secrets.ACHIEVABLE_GITHUB_TOKEN }}
