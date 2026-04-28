@@ -1,5 +1,14 @@
 import { DiceTrayPopOut } from "../../dice-tray-popout.js";
 import { DiceRowSettings } from "../../forms/DiceRowSettings.js";
+import {
+	focusChatInput,
+	getChatInput,
+	getChatInputAnchor,
+	getChatInputValue,
+	parseRollMode,
+	selectChatInput,
+	setChatInputValue
+} from "../../chat-compat.js";
 
 export default class TemplateDiceMap {
 	_rightClickCommand;
@@ -103,11 +112,11 @@ export default class TemplateDiceMap {
 	}
 
 	get textarea() {
-		return document.querySelector("textarea.chat-input");
+		return getChatInput();
 	}
 
 	roll(formula) {
-		const [rollMode] = ui.chat.constructor.parse(formula);
+		const rollMode = parseRollMode(formula);
 		Roll.create(formula.replace(/(\/r|\/gmr|\/br|\/sr) /, "")).toMessage({}, { rollMode });
 	}
 
@@ -126,9 +135,11 @@ export default class TemplateDiceMap {
 		/** Clicking the Roll button clears and hides all orange number flags, and unmark the KH/KL keys */
 		html.querySelector(".dice-tray__roll")?.addEventListener("click", async (event) => {
 			event.preventDefault();
-			this.roll(this.textarea.value);
+			const chat = this.textarea;
+			if (!chat) return;
+			this.roll(getChatInputValue(chat));
 			this.reset();
-			this.textarea.value = "";
+			setChatInputValue("", chat);
 		});
 	}
 
@@ -137,7 +148,9 @@ export default class TemplateDiceMap {
 			// Avoids moving focus to the button
 			button.addEventListener("pointerdown", (event) => {
 				event.preventDefault();
-				this.textarea.select();
+				const chat = this.textarea;
+				if (!chat) return;
+				selectChatInput(chat);
 			});
 		});
 		html.querySelectorAll(".dice-tray__button").forEach((button) => {
@@ -216,7 +229,11 @@ export default class TemplateDiceMap {
 
 		if (this.rendered) this.element.remove();
 		if (content.length > 0) {
-			const inputElement = document.getElementById("chat-message");
+			const inputElement = getChatInputAnchor();
+			if (!inputElement) {
+				this.rendered = false;
+				return;
+			}
 			inputElement.insertAdjacentHTML("afterend", content);
 			CONFIG.DICETRAY.element = inputElement.parentElement.querySelector(".dice-tray");
 			CONFIG.DICETRAY.applyLayout(CONFIG.DICETRAY.element);
@@ -275,7 +292,8 @@ export default class TemplateDiceMap {
 				event.preventDefault();
 				const dataset = event.currentTarget.dataset;
 				const chat = this.textarea;
-				let chatVal = String(chat.value);
+				if (!chat) return;
+				let chatVal = String(getChatInputValue(chat));
 				const matchString = /\d*d\d+[khl]*/;
 
 				// If there's a d20, toggle the current if needed.
@@ -310,7 +328,7 @@ export default class TemplateDiceMap {
 				toggleClass(".dice-tray__advantage", chatVal.includes("kh"));
 				toggleClass(".dice-tray__disadvantage", chatVal.includes("kl"));
 				// Update the value.
-				chat.value = chatVal;
+				setChatInputValue(chatVal, chat);
 			});
 		}
 	}
@@ -347,21 +365,22 @@ export default class TemplateDiceMap {
 		}
 
 		const chat = this.textarea;
-		const chatVal = String(chat.value);
+		if (!chat) return;
+		const chatVal = String(getChatInputValue(chat));
 
 		const matchString = /(\+|-)(\d+)$/;
 		if (matchString.test(chatVal)) {
-			chat.value = chatVal.replace(matchString, modString);
+			setChatInputValue(chatVal.replace(matchString, modString), chat);
 		} else if (chatVal !== "") {
-			chat.value = chatVal + modString;
+			setChatInputValue(chatVal + modString, chat);
 		} else {
 			const rollPrefix = this._getRollMode(html);
-			chat.value = `${rollPrefix} ${modString}`;
+			setChatInputValue(`${rollPrefix} ${modString}`, chat);
 		}
-		if (/(\/r|\/gmr|\/br|\/sr) $/g.test(chat.value)) {
-			chat.value = "";
+		if (/(\/r|\/gmr|\/br|\/sr) $/g.test(getChatInputValue(chat))) {
+			setChatInputValue("", chat);
 		}
-		if (!options.noFocus) this.textarea.focus();
+		if (!options.noFocus) focusChatInput(chat);
 	}
 
 	/**
@@ -386,7 +405,8 @@ export default class TemplateDiceMap {
 	 */
 	updateChatDice(dataset, direction, html) {
 		const chat = this.textarea;
-		let currFormula = String(chat.value);
+		if (!chat) return;
+		let currFormula = String(getChatInputValue(chat));
 		if (direction === "sub" && currFormula === "") {
 			this.reset();
 			return;
@@ -435,13 +455,13 @@ export default class TemplateDiceMap {
 			const signal = (/(\/r|\/gmr|\/br|\/sr) (?!-)/g.test(currFormula)) ? "+" : "";
 			currFormula = currFormula.replace(/(\/r|\/gmr|\/br|\/sr) /g, `${rollPrefix} ${this.rawFormula(qty, dice || dataset.formula, html)}${signal}`);
 		}
-		chat.value = currFormula;
+		setChatInputValue(currFormula, chat);
 
 		// Add a flag indicator on the dice.
 		this.updateDiceFlags(qty, dataset.formula);
 
 		currFormula = currFormula.replace(/(\/r|\/gmr|\/br|\/sr)(( \+)| )/g, `${rollPrefix} `).replace(/\+{2}/g, "+").replace(/-{2}/g, "-").replace(/\+$/g, "");
-		chat.value = currFormula;
+		setChatInputValue(currFormula, chat);
 		this.applyModifier(html);
 	}
 
