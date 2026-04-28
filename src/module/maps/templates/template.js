@@ -122,7 +122,9 @@ export default class TemplateDiceMap {
 			.replace(/(\d*d\d+)(k[hl])(?!\d)/g, (_match, dice, keep) => `${dice}${keep}1`)
 			.trim();
 		if (!normalizedFormula) return false;
-		const roll = await (typeof Roll.create === "function" ? Roll.create(normalizedFormula) : new Roll(normalizedFormula));
+		let roll;
+		if (typeof Roll.create === "function") roll = await Roll.create(normalizedFormula);
+		else roll = new Roll(normalizedFormula);
 		if (!roll.evaluated) await roll.evaluate({ async: true });
 		return roll.toMessage({}, { rollMode });
 	}
