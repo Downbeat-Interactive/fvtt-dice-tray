@@ -4,6 +4,7 @@ const CHAT_INPUT_SELECTORS = [
 	'textarea[name="content"]',
 	'[contenteditable="true"]'
 ];
+const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
 
 function resolveElement(element) {
 	if (element instanceof HTMLElement) return element;
@@ -76,12 +77,12 @@ export function parseRollMode(formula) {
 		try {
 			const [rollMode] = ui.chat.constructor.parse(formula);
 			if (rollMode) return rollMode;
-		} catch(error) {
-			console.warn("dice-calculator | Falling back to manual roll mode parsing.", error);
+		} catch{
+			console.warn("dice-calculator | Falling back to manual roll mode parsing.");
 		}
 	}
 
-	switch (formula.match(/^\s*\/(gmr|br|sr|r)\b/i)?.[1]?.toLowerCase()) {
+	switch (formula.match(ROLL_COMMAND_PATTERN)?.[1]?.toLowerCase()) {
 		case "gmr":
 			return "gmroll";
 		case "br":
