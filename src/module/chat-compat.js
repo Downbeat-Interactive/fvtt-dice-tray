@@ -1,4 +1,7 @@
 const CHAT_INPUT_SELECTORS = [
+	".chat-message-editor",
+	'prosemirror-editor[name="content"]',
+	"prosemirror-editor",
 	"#chat-message",
 	"textarea.chat-input",
 	'textarea[name="content"]',
@@ -22,6 +25,25 @@ function queryChatElement(root, selectors) {
 	return null;
 }
 
+function htmlToText(value) {
+	if (typeof value !== "string" || !/<[^>]+>/.test(value)) return value ?? "";
+	const element = document.createElement("div");
+	element.innerHTML = value;
+	return element.textContent ?? "";
+}
+
+function textToParagraph(value) {
+	if (!value) return "";
+	const element = document.createElement("p");
+	element.textContent = value;
+	return element.outerHTML;
+}
+
+function isProseMirrorElement(chatInput) {
+	return chatInput?.matches?.(".chat-message-editor, prosemirror-editor")
+		|| chatInput?.querySelector?.(".ProseMirror");
+}
+
 export function getChatRoot() {
 	return resolveElement(ui.sidebar?.popouts?.chat?.element) || resolveElement(ui.chat?.element);
 }
@@ -33,13 +55,13 @@ export function getChatInput() {
 
 export function getChatInputValue(chatInput = getChatInput()) {
 	if (!chatInput) return "";
-	if ("value" in chatInput) return chatInput.value;
+	if ("value" in chatInput) return htmlToText(chatInput.value);
 	return chatInput.textContent ?? "";
 }
 
 export function setChatInputValue(value, chatInput = getChatInput()) {
 	if (!chatInput) return false;
-	if ("value" in chatInput) chatInput.value = value;
+	if ("value" in chatInput) chatInput.value = isProseMirrorElement(chatInput) ? textToParagraph(value) : value;
 	else chatInput.textContent = value;
 	chatInput.dispatchEvent(new Event("input", { bubbles: true }));
 	return true;
