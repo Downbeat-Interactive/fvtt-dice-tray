@@ -148,7 +148,9 @@ export default class TemplateDiceMap {
 			// Avoids moving focus to the button
 			button.addEventListener("pointerdown", (event) => {
 				event.preventDefault();
-				selectChatInput(this.textarea);
+				const chat = this.textarea;
+				if (!chat) return;
+				selectChatInput(chat);
 			});
 		});
 		html.querySelectorAll(".dice-tray__button").forEach((button) => {
