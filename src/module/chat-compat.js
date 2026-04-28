@@ -30,7 +30,20 @@ function queryChatElement(root, selectors) {
 }
 
 function htmlToText(value) {
-	return foundry.utils.stripHTML(String(value ?? ""));
+	let text = "";
+	let inTag = false;
+	for (const char of String(value ?? "")) {
+		if (char === "<") {
+			inTag = true;
+			continue;
+		}
+		if (char === ">") {
+			inTag = false;
+			continue;
+		}
+		if (!inTag) text += char;
+	}
+	return text;
 }
 
 function textToParagraph(value) {
