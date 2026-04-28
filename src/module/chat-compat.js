@@ -27,8 +27,8 @@ function queryChatElement(root, selectors) {
 
 function htmlToText(value) {
 	if (typeof value !== "string") return value ?? "";
-	if (!/^\s*<\/?[a-z][\s\S]*>\s*$/i.test(value)) return value;
-	return value.replace(/<[^>]*>/g, "");
+	if (!/<[a-z][\s\S]*?>/i.test(value)) return value;
+	return new DOMParser().parseFromString(value, "text/html").body.textContent ?? "";
 }
 
 function textToParagraph(value) {
