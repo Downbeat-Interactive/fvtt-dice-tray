@@ -26,10 +26,9 @@ function queryChatElement(root, selectors) {
 }
 
 function htmlToText(value) {
-	if (typeof value !== "string" || !/<[^>]+>/.test(value)) return value ?? "";
-	const element = document.createElement("div");
-	element.innerHTML = value;
-	return element.textContent ?? "";
+	if (typeof value !== "string") return value ?? "";
+	if (!/^\s*<\/?[a-z][\s\S]*>\s*$/i.test(value)) return value;
+	return value.replace(/<[^>]*>/g, "");
 }
 
 function textToParagraph(value) {
