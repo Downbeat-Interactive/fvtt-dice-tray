@@ -77,8 +77,8 @@ export function parseRollMode(formula) {
 		try {
 			const [rollMode] = ui.chat.constructor.parse(formula);
 			if (rollMode) return rollMode;
-		} catch{
-			console.warn("dice-calculator | Falling back to manual roll mode parsing.");
+		} catch(error) {
+			console.warn("dice-calculator | Falling back to manual roll mode parsing.", error);
 		}
 	}
 
