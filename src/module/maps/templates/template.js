@@ -117,7 +117,7 @@ export default class TemplateDiceMap {
 
 	roll(formula) {
 		const rollMode = parseRollMode(formula);
-		const normalizedFormula = String(formula ?? "")
+		const normalizedFormula = (typeof formula === "string" ? formula : "")
 			.replace(/(\/r|\/gmr|\/br|\/sr) /, "")
 			.replace(/(\d*d\d+)(k[hl])(?!\d)/g, (_match, dice, keep) => `${dice}${keep}1`)
 			.trim();
