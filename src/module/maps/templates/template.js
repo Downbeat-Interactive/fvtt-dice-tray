@@ -115,14 +115,16 @@ export default class TemplateDiceMap {
 		return getChatInput();
 	}
 
-	roll(formula) {
+	async roll(formula) {
 		const rollMode = parseRollMode(formula);
 		const normalizedFormula = (typeof formula === "string" ? formula : "")
 			.replace(/(\/r|\/gmr|\/br|\/sr) /, "")
 			.replace(/(\d*d\d+)(k[hl])(?!\d)/g, (_match, dice, keep) => `${dice}${keep}1`)
 			.trim();
 		if (!normalizedFormula) return;
-		Roll.create(normalizedFormula).toMessage({}, { rollMode });
+		const roll = typeof Roll.create === "function" ? Roll.create(normalizedFormula) : new Roll(normalizedFormula);
+		await roll.evaluate({ async: true });
+		return roll.toMessage({}, { rollMode });
 	}
 
 	/**
@@ -142,7 +144,7 @@ export default class TemplateDiceMap {
 			event.preventDefault();
 			const chat = this.textarea;
 			if (!chat) return;
-			this.roll(getChatInputValue(chat));
+			await this.roll(getChatInputValue(chat));
 			this.reset();
 			setChatInputValue("", chat);
 		});
@@ -165,12 +167,12 @@ export default class TemplateDiceMap {
 				CONFIG.DICETRAY.updateChatDice(dataset, "add", html);
 			});
 
-			button.addEventListener("contextmenu", (event) => {
+			button.addEventListener("contextmenu", async (event) => {
 				event.preventDefault();
 				const dataset = event.currentTarget.dataset;
 				switch (this.rightClickCommand) {
 					case "roll": {
-						this.roll(dataset.formula);
+						await this.roll(dataset.formula);
 						break;
 					}
 					case "decrease":
