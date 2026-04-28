@@ -121,9 +121,9 @@ export default class TemplateDiceMap {
 			.replace(/(\/r|\/gmr|\/br|\/sr) /, "")
 			.replace(/(\d*d\d+)(k[hl])(?!\d)/g, (_match, dice, keep) => `${dice}${keep}1`)
 			.trim();
-		if (!normalizedFormula) return;
-		const roll = typeof Roll.create === "function" ? Roll.create(normalizedFormula) : new Roll(normalizedFormula);
-		await roll.evaluate({ async: true });
+		if (!normalizedFormula) return false;
+		const roll = await (typeof Roll.create === "function" ? Roll.create(normalizedFormula) : new Roll(normalizedFormula));
+		if (!roll.evaluated) await roll.evaluate({ async: true });
 		return roll.toMessage({}, { rollMode });
 	}
 
@@ -144,9 +144,10 @@ export default class TemplateDiceMap {
 			event.preventDefault();
 			const chat = this.textarea;
 			if (!chat) return;
-			await this.roll(getChatInputValue(chat));
-			this.reset();
-			setChatInputValue("", chat);
+			if (await this.roll(getChatInputValue(chat))) {
+				this.reset();
+				setChatInputValue("", chat);
+			}
 		});
 	}
 
