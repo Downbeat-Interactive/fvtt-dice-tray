@@ -34,8 +34,8 @@ export default class TemplateDiceMap {
 	 */
 	get buttonFormulas() {
 		return {
-			kh: "kh",
-			kl: "kl"
+			kh: "kh1",
+			kl: "kl1"
 		};
 	}
 
@@ -117,7 +117,12 @@ export default class TemplateDiceMap {
 
 	roll(formula) {
 		const rollMode = parseRollMode(formula);
-		Roll.create(formula.replace(/(\/r|\/gmr|\/br|\/sr) /, "")).toMessage({}, { rollMode });
+		const normalizedFormula = String(formula ?? "")
+			.replace(/(\/r|\/gmr|\/br|\/sr) /, "")
+			.replace(/(\d*d\d+)(k[hl])(?!\d)/g, (_match, dice, keep) => `${dice}${keep}1`)
+			.trim();
+		if (!normalizedFormula) return;
+		Roll.create(normalizedFormula).toMessage({}, { rollMode });
 	}
 
 	/**
@@ -294,12 +299,12 @@ export default class TemplateDiceMap {
 				const chat = this.textarea;
 				if (!chat) return;
 				let chatVal = String(getChatInputValue(chat));
-				const matchString = /\d*d\d+[khl]*/;
+				const matchString = /\d*d\d+(?:k[hl]\d*)?/;
 
 				// If there's a d20, toggle the current if needed.
 				if (matchString.test(chatVal)) {
 					// If there was previously a kh or kl, update it.
-					if (/d\d+k[hl]/g.test(chatVal)) {
+					if (/d\d+k[hl]\d*/g.test(chatVal)) {
 						chatVal = chatVal.replace(/(\d*)(d\d+)(k[hl]\d*)/g, (match, p1, p2, p3, offset, string) => {
 							let diceKeep = this.updateDiceKeep(p1, p2, p3, -1, dataset.formula);
 							html.querySelector(`.dice-tray__flag--${p2}`).textContent = diceKeep.count;
@@ -425,7 +430,7 @@ export default class TemplateDiceMap {
 			dice = match[2];
 		}
 		// Catch KH/KL
-		matchDice += "[khl]*";
+		matchDice += "(?:k[hl]\\d*)?";
 
 		const matchString = new RegExp(`${this.rawFormula("(?<qty>\\d*)", `(?<dice>${matchDice})`, html)}(?=\\+|\\-|$)`);
 		if (matchString.test(currFormula)) {
