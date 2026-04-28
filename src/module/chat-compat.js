@@ -1,7 +1,10 @@
-const CHAT_INPUT_SELECTORS = [
+const PROSEMIRROR_INPUT_SELECTORS = [
 	".chat-message-editor",
 	'prosemirror-editor[name="content"]',
-	"prosemirror-editor",
+	"prosemirror-editor"
+];
+const CHAT_INPUT_SELECTORS = [
+	...PROSEMIRROR_INPUT_SELECTORS,
 	"#chat-message",
 	"textarea.chat-input",
 	'textarea[name="content"]',
@@ -28,7 +31,7 @@ function queryChatElement(root, selectors) {
 function htmlToText(value) {
 	if (typeof value !== "string") return value ?? "";
 	if (!/<[a-z][\s\S]*?>/i.test(value)) return value;
-	return new DOMParser().parseFromString(value, "text/html").body.textContent ?? "";
+	return foundry.utils.stripHTML(value);
 }
 
 function textToParagraph(value) {
@@ -39,7 +42,7 @@ function textToParagraph(value) {
 }
 
 function isProseMirrorElement(chatInput) {
-	return chatInput?.matches?.(".chat-message-editor, prosemirror-editor")
+	return chatInput?.matches?.(PROSEMIRROR_INPUT_SELECTORS.join(", "))
 		|| chatInput?.querySelector?.(".ProseMirror");
 }
 
