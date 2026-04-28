@@ -22,7 +22,7 @@ function queryChatElement(root, selectors) {
 }
 
 export function getChatRoot() {
-	return resolveElement(ui.sidebar.popouts.chat?.element) || resolveElement(ui.chat?.element);
+	return resolveElement(ui.sidebar?.popouts?.chat?.element) || resolveElement(ui.chat?.element);
 }
 
 export function getChatInput() {
@@ -76,7 +76,7 @@ export function parseRollMode(formula) {
 		try {
 			const [rollMode] = ui.chat.constructor.parse(formula);
 			if (rollMode) return rollMode;
-		} catch (error) {
+		} catch(error) {
 			console.warn("dice-calculator | Falling back to manual roll mode parsing.", error);
 		}
 	}
