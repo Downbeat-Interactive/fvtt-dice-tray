@@ -9,7 +9,7 @@ This module adds a dice tray below chat and turns the d20 icon near the chat pro
 3.
    a) Search for Dice Tray.
 
-	 b) Paste the following on the **Manifest Link**: https://github.com/mclemente/fvtt-dice-tray/releases/latest/download/module.json
+	 b) Paste the following on the **Manifest Link**: https://github.com/Downbeat-Interactive/fvtt-dice-tray/releases/latest/download/module.json
 5. In your world, enable the module on the module settings.
 
 
