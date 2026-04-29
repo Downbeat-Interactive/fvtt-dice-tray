@@ -39,7 +39,7 @@ function queryChatElement(root, selectors) {
 
 function startsHtmlTag(source, index) {
 	const next = source[index + 1];
-	return /[a-z/]/i.test(next) || source.startsWith("<!--", index) || source.startsWith("<!", index) || source.startsWith("<?", index);
+	return Boolean(next) && (/[a-z/]/i.test(next) || source.startsWith("<!--", index) || source.startsWith("<!", index) || source.startsWith("<?", index));
 }
 
 function htmlToText(value) {
@@ -52,13 +52,13 @@ function htmlToText(value) {
 			inTag = true;
 			continue;
 		}
-		if (char === ">") {
+		if (char === ">" && inTag) {
 			inTag = false;
 			continue;
 		}
 		if (!inTag) text += char;
 	}
-	return text.replace(/&(amp|gt|lt|nbsp|quot|#39);/g, (entity) => HTML_ENTITIES[entity] ?? entity);
+	return text.replace(/&(amp|gt|lt|nbsp|quot);|&#39;/g, (entity) => HTML_ENTITIES[entity] ?? entity);
 }
 
 function textToParagraph(value) {
