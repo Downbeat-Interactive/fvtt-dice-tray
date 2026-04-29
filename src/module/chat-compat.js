@@ -20,6 +20,7 @@ const HTML_ENTITIES = {
 	"&quot;": "\"",
 	"&#39;": "'"
 };
+const HTML_ENTITY_PATTERN = new RegExp(Object.keys(HTML_ENTITIES).join("|"), "g");
 
 function resolveElement(element) {
 	if (element instanceof HTMLElement) return element;
@@ -39,13 +40,16 @@ function queryChatElement(root, selectors) {
 
 function startsHtmlTag(source, index) {
 	const next = source[index + 1];
-	return Boolean(next) && (/[a-z/]/i.test(next) || source.startsWith("<!--", index) || source.startsWith("<!", index) || source.startsWith("<?", index));
+	const startsElement = Boolean(next) && /[a-z/]/i.test(next);
+	const startsDeclaration = source.startsWith("<!--", index) || source.startsWith("<!", index) || source.startsWith("<?", index);
+	return startsElement || startsDeclaration;
 }
 
 function htmlToText(value) {
+	if (typeof value !== "string") return "";
 	let text = "";
 	let inTag = false;
-	const source = String(value ?? "");
+	const source = value;
 	for (let i = 0; i < source.length; i++) {
 		const char = source[i];
 		if (char === "<" && startsHtmlTag(source, i)) {
@@ -58,7 +62,7 @@ function htmlToText(value) {
 		}
 		if (!inTag) text += char;
 	}
-	return text.replace(/&(amp|gt|lt|nbsp|quot);|&#39;/g, (entity) => HTML_ENTITIES[entity] ?? entity);
+	return text.replace(HTML_ENTITY_PATTERN, (entity) => HTML_ENTITIES[entity]);
 }
 
 function textToParagraph(value) {
