@@ -12,6 +12,14 @@ const CHAT_INPUT_SELECTORS = [
 	'[contenteditable="true"]'
 ];
 const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
+const HTML_ENTITIES = {
+	"&amp;": "&",
+	"&gt;": ">",
+	"&lt;": "<",
+	"&nbsp;": " ",
+	"&quot;": "\"",
+	"&#39;": "'"
+};
 
 function resolveElement(element) {
 	if (element instanceof HTMLElement) return element;
@@ -32,8 +40,11 @@ function queryChatElement(root, selectors) {
 function htmlToText(value) {
 	let text = "";
 	let inTag = false;
-	for (const char of String(value ?? "")) {
-		if (char === "<") {
+	const source = String(value ?? "");
+	for (let i = 0; i < source.length; i++) {
+		const char = source[i];
+		const next = source[i + 1];
+		if (char === "<" && /[a-z/!?]/i.test(next)) {
 			inTag = true;
 			continue;
 		}
@@ -43,7 +54,7 @@ function htmlToText(value) {
 		}
 		if (!inTag) text += char;
 	}
-	return text;
+	return text.replace(/&(amp|gt|lt|nbsp|quot|#39);/g, (entity) => HTML_ENTITIES[entity]);
 }
 
 function textToParagraph(value) {
