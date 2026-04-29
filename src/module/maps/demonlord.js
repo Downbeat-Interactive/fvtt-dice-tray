@@ -1,4 +1,8 @@
 import GenericDiceMap from "./templates/template.js";
+import {
+	getChatInputValue,
+	setChatInputValue
+} from "../chat-compat.js";
 
 export default class demonlordDiceMap extends GenericDiceMap {
 
@@ -36,7 +40,8 @@ export default class demonlordDiceMap extends GenericDiceMap {
 				event.preventDefault();
 				let sign = event.currentTarget.dataset.formula;
 				const chat = this.textarea; // Assuming `this.textarea` refers to a valid element
-				let chatVal = String(chat.value);
+				if (!chat) return;
+				let chatVal = String(getChatInputValue(chat));
 				const matchString = /(?<sign>[+-])(?<qty>\d*)d6kh/;
 				const match = chatVal.match(matchString);
 
@@ -58,9 +63,8 @@ export default class demonlordDiceMap extends GenericDiceMap {
 					chatVal = `${chatVal}${sign}1d6kh`;
 				}
 
-				chat.value = chatVal;
+				setChatInputValue(chatVal, chat);
 			});
 		}
 	}
 }
-

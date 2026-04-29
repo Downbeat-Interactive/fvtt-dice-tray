@@ -1,4 +1,9 @@
 import GenericDiceMap from "./templates/template.js";
+import {
+	getChatInputValue,
+	setChatInputValue
+} from "../chat-compat.js";
+
 export default class HeXXen1733DiceMap extends GenericDiceMap {
 	/** Shows the KH/KL buttons */
 	showExtraButtons = false;
@@ -47,26 +52,28 @@ export default class HeXXen1733DiceMap extends GenericDiceMap {
 		}
 
 		const chat = this.textarea;
-		const chatVal = String(chat.value);
+		if (!chat) return;
+		const chatVal = String(getChatInputValue(chat));
 
 		const matchString = /(\d+)(\+|-)$/;
 		if (matchString.test(chatVal)) {
-			chat.value = chatVal.replace(matchString, modString);
+			setChatInputValue(chatVal.replace(matchString, modString), chat);
 		} else if (chatVal !== "") {
-			chat.value = chatVal + modString;
+			setChatInputValue(chatVal + modString, chat);
 		} else {
 			const rollPrefix = this._getRollMode(html);
-			chat.value = `${rollPrefix} ${modString}`;
+			setChatInputValue(`${rollPrefix} ${modString}`, chat);
 		}
 
-		if (/(\/r|\/gmr|\/br|\/sr) $/g.test(chat.value)) {
-			chat.value = "";
+		if (/(\/r|\/gmr|\/br|\/sr) $/g.test(getChatInputValue(chat))) {
+			setChatInputValue("", chat);
 		}
 	}
 
 	updateChatDice(dataset, direction, html) {
 		const chat = this.textarea;
-		let currFormula = String(chat.value);
+		if (!chat) return;
+		let currFormula = String(getChatInputValue(chat));
 
 		if (direction === "sub" && currFormula === "") {
 			this.reset();
@@ -108,14 +115,14 @@ export default class HeXXen1733DiceMap extends GenericDiceMap {
 			const signal = (/(\/r|\/gmr|\/br|\/sr) (?!-)/g.test(currFormula)) ? "+" : "";
 			currFormula = currFormula.replace(/(\/r|\/gmr|\/br|\/sr) /g, `${rollPrefix} ${this.rawFormula(qty, dice || dataset.formula, html)}${signal}`);
 		}
-		chat.value = currFormula;
+		setChatInputValue(currFormula, chat);
 
 		// Add a flag indicator on the dice.
 		const flagNumber = direction === "add" ? qty : 0;
 		this.updateDiceFlags(flagNumber, dataset.formula);
 
 		currFormula = currFormula.replace(/(\/r|\/gmr|\/br|\/sr)(( \+)| )/g, `${rollPrefix} `).replace(/\+{2}/g, "+").replace(/-{2}/g, "-");
-		chat.value = currFormula;
+		setChatInputValue(currFormula, chat);
 		this.applyModifier(html);
 	}
 }

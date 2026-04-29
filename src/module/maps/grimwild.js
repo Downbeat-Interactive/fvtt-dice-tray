@@ -1,4 +1,8 @@
 import TemplateDiceMap from "./templates/template.js";
+import {
+	getChatInputValue,
+	setChatInputValue
+} from "../chat-compat.js";
 
 export default class GrimwildDiceMap extends TemplateDiceMap {
 	// Ironically, this is used to *remove* extra buttons like the input.
@@ -36,7 +40,8 @@ export default class GrimwildDiceMap extends TemplateDiceMap {
 	updateChatDice(dataset, direction, html) {
 		// Retrieve the current chat value.
 		const chat = this.textarea;
-		let currFormula = String(chat.value);
+		if (!chat) return;
+		let currFormula = String(getChatInputValue(chat));
 		// Exit early if there's nothing in chat and this is a remove operation.
 		if (direction === "sub" && currFormula === "") return;
 		// Grab the dice roll mode from chat.
@@ -169,7 +174,7 @@ export default class GrimwildDiceMap extends TemplateDiceMap {
 		// Update chat area if the formula is valid.
 		if (rollTextRegex.test(currFormula)) {
 			// If there are dice, apply the formula. Otherwise, empty it.
-			chat.value = dice ? currFormula : "";
+			setChatInputValue(dice ? currFormula : "", chat);
 		}
 	}
 
