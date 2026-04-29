@@ -1,9 +1,10 @@
 const PROSEMIRROR_INPUT_SELECTORS = [
-	".chat-message-editor",
 	'prosemirror-editor[name="content"]',
-	"prosemirror-editor"
+	"prosemirror-editor",
+	".chat-message-editor"
 ];
 const PROSEMIRROR_INPUT_SELECTOR = PROSEMIRROR_INPUT_SELECTORS.join(", ");
+const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor';
 const CHAT_INPUT_SELECTORS = [
 	...PROSEMIRROR_INPUT_SELECTORS,
 	"#chat-message",
@@ -75,8 +76,14 @@ function textToParagraph(value) {
 	return element.outerHTML;
 }
 
+function getProseMirrorEditor(chatInput) {
+	if (chatInput?.matches?.(PROSEMIRROR_EDITOR_SELECTOR)) return chatInput;
+	return chatInput?.querySelector?.(PROSEMIRROR_EDITOR_SELECTOR) ?? null;
+}
+
 function isProseMirrorElement(chatInput) {
 	return chatInput?.matches?.(PROSEMIRROR_INPUT_SELECTOR)
+		|| Boolean(getProseMirrorEditor(chatInput))
 		|| chatInput?.querySelector?.(".ProseMirror");
 }
 
@@ -91,13 +98,22 @@ export function getChatInput() {
 
 export function getChatInputValue(chatInput = getChatInput()) {
 	if (!chatInput) return "";
+	const prosemirror = getProseMirrorEditor(chatInput);
+	if (prosemirror && "value" in prosemirror) return htmlToText(prosemirror.value);
 	if ("value" in chatInput) return htmlToText(chatInput.value);
 	return chatInput.textContent ?? "";
 }
 
 export function setChatInputValue(value, chatInput = getChatInput()) {
 	if (!chatInput) return false;
-	if ("value" in chatInput) chatInput.value = isProseMirrorElement(chatInput) ? textToParagraph(value) : value;
+	const prosemirror = getProseMirrorEditor(chatInput);
+	if (prosemirror) {
+		const html = textToParagraph(value);
+		if (typeof prosemirror.setContent === "function") prosemirror.setContent(html);
+		else if ("value" in prosemirror) prosemirror.value = html;
+		else prosemirror.textContent = value;
+		prosemirror.dispatchEvent(new Event("input", { bubbles: true }));
+	} else if ("value" in chatInput) chatInput.value = isProseMirrorElement(chatInput) ? textToParagraph(value) : value;
 	else chatInput.textContent = value;
 	chatInput.dispatchEvent(new Event("input", { bubbles: true }));
 	return true;
