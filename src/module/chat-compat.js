@@ -41,7 +41,7 @@ function queryChatElement(root, selectors) {
 function startsHtmlTag(source, index) {
 	const next = source[index + 1];
 	const startsElement = Boolean(next) && /[a-z/]/i.test(next);
-	const startsDeclaration = source.startsWith("<!--", index) || source.startsWith("<!", index) || source.startsWith("<?", index);
+	const startsDeclaration = source.startsWith("<!", index) || source.startsWith("<?", index);
 	return startsElement || startsDeclaration;
 }
 
@@ -49,18 +49,21 @@ function htmlToText(value) {
 	if (typeof value !== "string") return "";
 	let text = "";
 	let inTag = false;
-	const source = value;
-	for (let i = 0; i < source.length; i++) {
-		const char = source[i];
-		if (char === "<" && startsHtmlTag(source, i)) {
+	let quote = "";
+	for (let i = 0; i < value.length; i++) {
+		const char = value[i];
+		if (char === "<" && startsHtmlTag(value, i)) {
 			inTag = true;
+			quote = "";
 			continue;
 		}
-		if (char === ">" && inTag) {
-			inTag = false;
+		if (inTag) {
+			if ((char === "\"" || char === "'") && !quote) quote = char;
+			else if (char === quote) quote = "";
+			else if (char === ">" && !quote) inTag = false;
 			continue;
 		}
-		if (!inTag) text += char;
+		text += char;
 	}
 	return text.replace(HTML_ENTITY_PATTERN, (entity) => HTML_ENTITIES[entity]);
 }
