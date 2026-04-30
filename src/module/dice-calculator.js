@@ -4,11 +4,15 @@ import { getChatInputAnchor } from "./chat-compat.js";
 import { KEYS } from "./maps/_keys.js";
 import { registerSettings } from "./settings.js";
 
+const CHAT_MESSAGE_ID = "chat-message";
+
 // Initialize module
 Hooks.once("init", () => {
 	foundry.applications.handlebars.loadTemplates(["modules/dice-calculator/templates/tray.html"]);
+	// Foundry's ProseMirror element fires this event while configuring plugins.
+	// Capture only the chat editor view so dice buttons can update hidden or inactive chat inputs.
 	document.addEventListener("plugins", (event) => {
-		if (event.target?.id !== "chat-message") return;
+		if (event.target?.id !== CHAT_MESSAGE_ID) return;
 		const { Plugin, PluginKey } = foundry.prosemirror;
 		const key = new PluginKey("dice-calculator-chat-view");
 		event.plugins["dice-calculator"] = new Plugin({
