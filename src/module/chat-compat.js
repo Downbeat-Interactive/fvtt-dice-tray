@@ -61,11 +61,11 @@ function resolveElement(element) {
 }
 
 function isChatInputElement(element) {
-	return Boolean(element?.matches?.(STRICT_CHAT_INPUT_SELECTOR) || element?.closest?.(CHAT_INPUT_CONTAINER_SELECTOR));
+	return !!(element?.matches?.(STRICT_CHAT_INPUT_SELECTOR) || element?.closest?.(CHAT_INPUT_CONTAINER_SELECTOR));
 }
 
 function isVisibleElement(element) {
-	return Boolean(element?.offsetParent || element?.getClientRects?.().length);
+	return !!(element?.offsetParent || element?.getClientRects?.().length);
 }
 
 function queryChatElement(root, selectors, predicate = null) {
