@@ -19,15 +19,6 @@ const CHAT_INPUT_SELECTORS = [
 	'[contenteditable="true"]'
 ];
 const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
-const HTML_ENTITIES = {
-	"&amp;": "&",
-	"&gt;": ">",
-	"&lt;": "<",
-	"&nbsp;": " ",
-	"&quot;": "\"",
-	"&#39;": "'"
-};
-const HTML_ENTITY_PATTERN = new RegExp(Object.keys(HTML_ENTITIES).join("|"), "g");
 
 function resolveElement(element) {
 	if (element instanceof HTMLElement) return element;
@@ -45,34 +36,11 @@ function queryChatElement(root, selectors) {
 	return null;
 }
 
-function startsHtmlTag(source, index) {
-	const next = source[index + 1];
-	const startsElement = Boolean(next) && /[a-z/]/i.test(next);
-	const startsDeclaration = source.startsWith("<!", index) || source.startsWith("<?", index);
-	return startsElement || startsDeclaration;
-}
-
 function htmlToText(value) {
 	if (typeof value !== "string") return "";
-	let text = "";
-	let inTag = false;
-	let quote = "";
-	for (let i = 0; i < value.length; i++) {
-		const char = value[i];
-		if (char === "<" && startsHtmlTag(value, i)) {
-			inTag = true;
-			quote = "";
-			continue;
-		}
-		if (inTag) {
-			if ((char === "\"" || char === "'") && !quote) quote = char;
-			else if (char === quote) quote = "";
-			else if (char === ">" && !quote) inTag = false;
-			continue;
-		}
-		text += char;
-	}
-	return text.replace(HTML_ENTITY_PATTERN, (entity) => HTML_ENTITIES[entity]);
+	const template = document.createElement("template");
+	template.innerHTML = value;
+	return template.content.textContent ?? "";
 }
 
 function textToParagraph(value) {
