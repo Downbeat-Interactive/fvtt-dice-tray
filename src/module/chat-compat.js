@@ -1,10 +1,15 @@
 const PROSEMIRROR_INPUT_SELECTORS = [
 	'prosemirror-editor[name="content"]',
 	"prosemirror-editor",
+	"#chat-form .ProseMirror",
+	".chat-form .ProseMirror",
+	".ProseMirror[contenteditable=\"true\"]",
+	".editor.prosemirror",
 	".chat-message-editor"
 ];
 const PROSEMIRROR_INPUT_SELECTOR = PROSEMIRROR_INPUT_SELECTORS.join(", ");
-const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor';
+const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
+const PROSEMIRROR_ANCHOR_SELECTOR = "prosemirror-editor, .chat-message-editor";
 const CHAT_INPUT_SELECTORS = [
 	...PROSEMIRROR_INPUT_SELECTORS,
 	"#chat-message",
@@ -81,6 +86,39 @@ function getProseMirrorEditor(chatInput) {
 	return chatInput?.querySelector?.(PROSEMIRROR_EDITOR_SELECTOR) ?? null;
 }
 
+function getProseMirrorView(chatInput) {
+	const editor = getProseMirrorEditor(chatInput);
+	const candidates = [
+		chatInput,
+		editor,
+		chatInput?.querySelector?.(".ProseMirror"),
+		editor?.querySelector?.(".ProseMirror")
+	];
+	for (const candidate of candidates) {
+		const view = candidate?.editorView ?? candidate?.view;
+		if (view?.state?.doc && typeof view.dispatch === "function") return view;
+	}
+
+	const chatEditor = ui.chat?.editor;
+	const view = chatEditor?.editorView ?? chatEditor?.view;
+	if (view?.state?.doc && typeof view.dispatch === "function") return view;
+	return null;
+}
+
+function setProseMirrorViewText(view, value) {
+	const { state } = view;
+	const { paragraph } = state.schema.nodes;
+	if (!paragraph) return false;
+
+	const lines = String(value).split("\n");
+	const content = lines.map((line) => {
+		const text = line ? state.schema.text(line) : null;
+		return paragraph.create(null, text);
+	});
+	view.dispatch(state.tr.replaceWith(0, state.doc.content.size, content).scrollIntoView());
+	return true;
+}
+
 function isProseMirrorElement(chatInput) {
 	return chatInput?.matches?.(PROSEMIRROR_INPUT_SELECTOR)
 		|| Boolean(getProseMirrorEditor(chatInput))
@@ -98,6 +136,8 @@ export function getChatInput() {
 
 export function getChatInputValue(chatInput = getChatInput()) {
 	if (!chatInput) return "";
+	const view = getProseMirrorView(chatInput);
+	if (view) return view.state.doc.textBetween(0, view.state.doc.content.size, "\n", "\n");
 	const prosemirror = getProseMirrorEditor(chatInput);
 	if (prosemirror && "value" in prosemirror) return htmlToText(prosemirror.value);
 	if ("value" in chatInput) return htmlToText(chatInput.value);
@@ -106,6 +146,12 @@ export function getChatInputValue(chatInput = getChatInput()) {
 
 export function setChatInputValue(value, chatInput = getChatInput()) {
 	if (!chatInput) return false;
+	const view = getProseMirrorView(chatInput);
+	if (view && setProseMirrorViewText(view, value)) {
+		view.focus?.();
+		chatInput.dispatchEvent(new Event("input", { bubbles: true }));
+		return true;
+	}
 	const prosemirror = getProseMirrorEditor(chatInput);
 	if (prosemirror) {
 		const html = textToParagraph(value);
@@ -120,12 +166,22 @@ export function setChatInputValue(value, chatInput = getChatInput()) {
 }
 
 export function focusChatInput(chatInput = getChatInput()) {
+	const view = getProseMirrorView(chatInput);
+	if (view) {
+		view.focus?.();
+		return true;
+	}
 	chatInput?.focus();
 	return Boolean(chatInput);
 }
 
 export function selectChatInput(chatInput = getChatInput()) {
 	if (!chatInput) return false;
+	const view = getProseMirrorView(chatInput);
+	if (view) {
+		view.focus?.();
+		return true;
+	}
 	if (typeof chatInput.select === "function") {
 		chatInput.select();
 		return true;
@@ -143,7 +199,10 @@ export function selectChatInput(chatInput = getChatInput()) {
 }
 
 export function getChatInputAnchor() {
-	return getChatInput() || queryChatElement(getChatRoot(), [".chat-form"]);
+	const chatInput = getChatInput();
+	return chatInput?.closest?.(PROSEMIRROR_ANCHOR_SELECTOR)
+		|| chatInput
+		|| queryChatElement(getChatRoot(), [".chat-form"]);
 }
 
 export function parseRollMode(formula) {
