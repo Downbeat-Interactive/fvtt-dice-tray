@@ -65,7 +65,8 @@ function isChatInputElement(element) {
 }
 
 function isVisibleElement(element) {
-	return !!(element?.offsetParent || element?.getClientRects?.().length);
+	if (element?.offsetParent) return true;
+	return !!element?.getClientRects?.().length;
 }
 
 function queryChatElement(root, selectors, predicate = null) {
