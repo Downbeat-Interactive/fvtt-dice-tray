@@ -38,9 +38,8 @@ function queryChatElement(root, selectors) {
 
 function htmlToText(value) {
 	if (typeof value !== "string") return "";
-	const template = document.createElement("template");
-	template.innerHTML = value;
-	return template.content.textContent ?? "";
+	const document = new DOMParser().parseFromString(value, "text/html");
+	return document.body.textContent ?? "";
 }
 
 function textToParagraph(value) {
@@ -84,7 +83,9 @@ function setProseMirrorViewText(view, value) {
 		const text = line ? state.schema.text(line) : null;
 		return paragraph.create(null, text);
 	});
-	view.dispatch(state.tr.replaceWith(0, state.doc.content.size, content).scrollIntoView());
+	const tr = state.tr.replaceWith(0, state.doc.content.size, content);
+	const selection = state.selection.map(tr.doc, tr.mapping);
+	view.dispatch(tr.setSelection(selection).scrollIntoView());
 	return true;
 }
 
