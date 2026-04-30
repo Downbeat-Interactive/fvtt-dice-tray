@@ -10,7 +10,7 @@ function captureChatEditorView(event) {
 	if (event?.target?.id !== CHAT_MESSAGE_ID) return;
 	const { Plugin, PluginKey } = foundry.prosemirror ?? {};
 	if (!Plugin || !PluginKey) {
-		console.warn("dice-calculator | Unable to capture the chat editor view: Foundry's ProseMirror plugin API is unavailable; Foundry VTT v10 or newer is required.");
+		console.warn("dice-calculator | Unable to capture the chat editor view: Foundry's ProseMirror plugin API is unavailable for the v14 chat input.");
 		return;
 	}
 	const key = new PluginKey("dice-calculator-chat-view");
@@ -30,13 +30,17 @@ function captureChatEditorView(event) {
 	});
 }
 
+function unregisterChatEditorViewCapture() {
+	document.removeEventListener("plugins", captureChatEditorView);
+}
+
 // Initialize module
 Hooks.once("init", () => {
 	foundry.applications.handlebars.loadTemplates(["modules/dice-calculator/templates/tray.html"]);
 	// Foundry's ProseMirror element fires this event while configuring plugins.
 	// Capture only the chat editor view so dice buttons can update hidden or inactive chat inputs.
 	document.addEventListener("plugins", captureChatEditorView);
-	Hooks.once("shutdown", () => document.removeEventListener("plugins", captureChatEditorView));
+	Hooks.once("shutdown", unregisterChatEditorViewCapture);
 });
 
 Hooks.once("i18nInit", () => {
