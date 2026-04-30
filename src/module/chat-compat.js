@@ -19,6 +19,19 @@ const CHAT_INPUT_SELECTORS = [
 	'[contenteditable="true"]'
 ];
 const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
+const HTML_ENTITIES = {
+	amp: "&",
+	apos: "'",
+	cent: "¢",
+	copy: "©",
+	gt: ">",
+	lt: "<",
+	nbsp: " ",
+	pound: "£",
+	quot: "\"",
+	reg: "®",
+	yen: "¥"
+};
 
 function resolveElement(element) {
 	if (element instanceof HTMLElement) return element;
@@ -36,10 +49,55 @@ function queryChatElement(root, selectors) {
 	return null;
 }
 
+function startsHtmlTag(source, index) {
+	const next = source[index + 1];
+	const startsElement = Boolean(next) && /[a-z/]/i.test(next);
+	const startsDeclaration = source.startsWith("<!", index) || source.startsWith("<?", index);
+	return startsElement || startsDeclaration;
+}
+
+function decodeHtmlEntity(entity) {
+	const numeric = entity.match(/^#(x[0-9a-f]+|\d+)$/i);
+	if (numeric) {
+		const value = numeric[1].startsWith("x")
+			? parseInt(numeric[1].slice(1), 16)
+			: parseInt(numeric[1], 10);
+		return Number.isNaN(value) || value > 0x10FFFF ? `&${entity};` : String.fromCodePoint(value);
+	}
+	return HTML_ENTITIES[entity] ?? `&${entity};`;
+}
+
 function htmlToText(value) {
 	if (typeof value !== "string") return "";
-	const document = new DOMParser().parseFromString(value, "text/html");
-	return document.body.textContent ?? "";
+	const text = [];
+	let inTag = false;
+	let quote = "";
+	let escaped = false;
+	for (let i = 0; i < value.length; i++) {
+		const char = value[i];
+		if (inTag) {
+			if (escaped) {
+				escaped = false;
+			} else if (char === "\\") {
+				escaped = true;
+			} else if ((char === "\"" || char === "'") && !quote) {
+				quote = char;
+			} else if (char === quote) {
+				quote = "";
+			} else if (char === ">" && !quote) {
+				inTag = false;
+			}
+			continue;
+		}
+		if (char === "<" && startsHtmlTag(value, i)) {
+			inTag = true;
+			quote = "";
+			escaped = false;
+			continue;
+		}
+		text.push(char);
+	}
+	return text.join("").replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (_match, entity) => decodeHtmlEntity(entity));
 }
 
 function textToParagraph(value) {
@@ -101,12 +159,10 @@ export function getChatInput() {
 export function getChatInputValue(chatInput = getChatInput()) {
 	if (!chatInput) return "";
 	const view = getProseMirrorView(chatInput);
-	if (view) return view.state.doc.textBetween(
-		0,
-		view.state.doc.content.size,
-		PROSEMIRROR_BLOCK_SEPARATOR,
-		PROSEMIRROR_LEAF_SEPARATOR
-	);
+	if (view) {
+		const { doc } = view.state;
+		return doc.textBetween(0, doc.content.size, PROSEMIRROR_BLOCK_SEPARATOR, PROSEMIRROR_LEAF_SEPARATOR);
+	}
 	const prosemirror = getProseMirrorEditor(chatInput);
 	if (prosemirror && "value" in prosemirror) return htmlToText(prosemirror.value);
 	if ("value" in chatInput) return chatInput.value;
@@ -170,9 +226,10 @@ export function selectChatInput(chatInput = getChatInput()) {
 
 export function getChatInputAnchor() {
 	const chatInput = getChatInput();
-	return chatInput?.closest?.(PROSEMIRROR_ANCHOR_SELECTOR)
-		|| chatInput
-		|| queryChatElement(getChatRoot(), [".chat-form"]);
+	const prosemirrorAnchor = chatInput?.closest?.(PROSEMIRROR_ANCHOR_SELECTOR);
+	if (prosemirrorAnchor) return prosemirrorAnchor;
+	if (chatInput) return chatInput;
+	return queryChatElement(getChatRoot(), [".chat-form"]);
 }
 
 export function parseRollMode(formula) {
