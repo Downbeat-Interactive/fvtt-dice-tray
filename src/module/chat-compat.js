@@ -9,6 +9,8 @@ const PROSEMIRROR_INPUT_SELECTORS = [
 ];
 const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
 const PROSEMIRROR_ANCHOR_SELECTOR = "prosemirror-editor, .chat-message-editor";
+const PROSEMIRROR_BLOCK_SEPARATOR = "\n";
+const PROSEMIRROR_LEAF_SEPARATOR = "\n";
 const CHAT_INPUT_SELECTORS = [
 	...PROSEMIRROR_INPUT_SELECTORS,
 	"#chat-message",
@@ -130,7 +132,12 @@ export function getChatInput() {
 export function getChatInputValue(chatInput = getChatInput()) {
 	if (!chatInput) return "";
 	const view = getProseMirrorView(chatInput);
-	if (view) return view.state.doc.textBetween(0, view.state.doc.content.size, "\n", "\n");
+	if (view) return view.state.doc.textBetween(
+		0,
+		view.state.doc.content.size,
+		PROSEMIRROR_BLOCK_SEPARATOR,
+		PROSEMIRROR_LEAF_SEPARATOR
+	);
 	const prosemirror = getProseMirrorEditor(chatInput);
 	if (prosemirror && "value" in prosemirror) return htmlToText(prosemirror.value);
 	if ("value" in chatInput) return chatInput.value;
@@ -152,6 +159,7 @@ export function setChatInputValue(value, chatInput = getChatInput()) {
 		else if ("value" in prosemirror) prosemirror.value = html;
 		else prosemirror.textContent = value;
 		prosemirror.dispatchEvent(new Event("input", { bubbles: true }));
+		return true;
 	} else if ("value" in chatInput) chatInput.value = value;
 	else chatInput.textContent = value;
 	chatInput.dispatchEvent(new Event("input", { bubbles: true }));
