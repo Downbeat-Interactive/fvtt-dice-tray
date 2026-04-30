@@ -7,7 +7,6 @@ const PROSEMIRROR_INPUT_SELECTORS = [
 	".editor.prosemirror",
 	".chat-message-editor"
 ];
-const PROSEMIRROR_INPUT_SELECTOR = PROSEMIRROR_INPUT_SELECTORS.join(", ");
 const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
 const PROSEMIRROR_ANCHOR_SELECTOR = "prosemirror-editor, .chat-message-editor";
 const CHAT_INPUT_SELECTORS = [
@@ -119,12 +118,6 @@ function setProseMirrorViewText(view, value) {
 	return true;
 }
 
-function isProseMirrorElement(chatInput) {
-	return chatInput?.matches?.(PROSEMIRROR_INPUT_SELECTOR)
-		|| Boolean(getProseMirrorEditor(chatInput))
-		|| chatInput?.querySelector?.(".ProseMirror");
-}
-
 export function getChatRoot() {
 	return resolveElement(ui.sidebar?.popouts?.chat?.element) || resolveElement(ui.chat?.element);
 }
@@ -140,7 +133,7 @@ export function getChatInputValue(chatInput = getChatInput()) {
 	if (view) return view.state.doc.textBetween(0, view.state.doc.content.size, "\n", "\n");
 	const prosemirror = getProseMirrorEditor(chatInput);
 	if (prosemirror && "value" in prosemirror) return htmlToText(prosemirror.value);
-	if ("value" in chatInput) return htmlToText(chatInput.value);
+	if ("value" in chatInput) return chatInput.value;
 	return chatInput.textContent ?? "";
 }
 
@@ -159,7 +152,7 @@ export function setChatInputValue(value, chatInput = getChatInput()) {
 		else if ("value" in prosemirror) prosemirror.value = html;
 		else prosemirror.textContent = value;
 		prosemirror.dispatchEvent(new Event("input", { bubbles: true }));
-	} else if ("value" in chatInput) chatInput.value = isProseMirrorElement(chatInput) ? textToParagraph(value) : value;
+	} else if ("value" in chatInput) chatInput.value = value;
 	else chatInput.textContent = value;
 	chatInput.dispatchEvent(new Event("input", { bubbles: true }));
 	return true;
