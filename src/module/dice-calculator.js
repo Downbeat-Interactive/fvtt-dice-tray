@@ -76,7 +76,13 @@ function getProviderString(regex) {
 
 function moveDiceTray() {
 	const inputElement = getChatInputAnchor();
-	if (!inputElement || !CONFIG.DICETRAY.element) return;
+	if (!inputElement) {
+		CONFIG.DICETRAY.element?.remove();
+		CONFIG.DICETRAY.element = null;
+		CONFIG.DICETRAY.rendered = false;
+		return;
+	}
+	if (!CONFIG.DICETRAY.element) return;
 	inputElement.insertAdjacentElement("afterend", CONFIG.DICETRAY.element);
 }
 

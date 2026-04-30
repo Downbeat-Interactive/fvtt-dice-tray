@@ -1,4 +1,7 @@
 const PROSEMIRROR_INPUT_SELECTORS = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"prose-mirror.chat-input",
 	'prosemirror-editor[name="content"]',
 	"prosemirror-editor",
 	"#chat-form .ProseMirror",
@@ -7,8 +10,8 @@ const PROSEMIRROR_INPUT_SELECTORS = [
 	".editor.prosemirror",
 	".chat-message-editor"
 ];
-const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
-const PROSEMIRROR_ANCHOR_SELECTOR = "prosemirror-editor, .chat-message-editor";
+const PROSEMIRROR_EDITOR_SELECTOR = 'prose-mirror#chat-message, prose-mirror.chat-input[name="message"], prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
+const PROSEMIRROR_ANCHOR_SELECTOR = "prose-mirror#chat-message, prose-mirror.chat-input[name=\"message\"], prosemirror-editor, .chat-message-editor";
 const PROSEMIRROR_BLOCK_SEPARATOR = "\n";
 const PROSEMIRROR_LEAF_SEPARATOR = "\n";
 const CHAT_INPUT_SELECTORS = [
@@ -17,6 +20,16 @@ const CHAT_INPUT_SELECTORS = [
 	"textarea.chat-input",
 	'textarea[name="content"]',
 	'[contenteditable="true"]'
+];
+const DOCUMENT_CHAT_INPUT_SELECTORS = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"#chat-message",
+	"#chat-form .ProseMirror",
+	".chat-form .ProseMirror",
+	"textarea.chat-input",
+	"#chat-form textarea",
+	".chat-form textarea"
 ];
 const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
 const HTML_ENTITIES = {
@@ -153,7 +166,7 @@ export function getChatRoot() {
 
 export function getChatInput() {
 	return queryChatElement(getChatRoot(), CHAT_INPUT_SELECTORS)
-		|| queryChatElement(document.body, CHAT_INPUT_SELECTORS);
+		|| queryChatElement(document.body, DOCUMENT_CHAT_INPUT_SELECTORS);
 }
 
 export function getChatInputValue(chatInput = getChatInput()) {
