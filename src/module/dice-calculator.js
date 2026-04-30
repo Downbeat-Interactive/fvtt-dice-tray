@@ -7,10 +7,10 @@ import { registerSettings } from "./settings.js";
 const CHAT_MESSAGE_ID = "chat-message";
 
 function captureChatEditorView(event) {
-	if (event.target?.id !== CHAT_MESSAGE_ID) return;
+	if (event?.target?.id !== CHAT_MESSAGE_ID) return;
 	const { Plugin, PluginKey } = foundry.prosemirror ?? {};
 	if (!Plugin || !PluginKey) {
-		console.warn("dice-calculator | Unable to capture the chat editor view: ProseMirror plugin API is unavailable.");
+		console.warn("dice-calculator | Unable to capture the chat editor view: Foundry's ProseMirror plugin API is unavailable; Foundry VTT v10 or newer is required.");
 		return;
 	}
 	const key = new PluginKey("dice-calculator-chat-view");
