@@ -11,7 +11,7 @@ const PROSEMIRROR_INPUT_SELECTORS = [
 	".chat-message-editor"
 ];
 const PROSEMIRROR_EDITOR_SELECTOR = 'prose-mirror#chat-message, prose-mirror.chat-input[name="message"], prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
-const PROSEMIRROR_ANCHOR_SELECTOR = "prose-mirror#chat-message, prose-mirror.chat-input[name=\"message\"], prosemirror-editor, .chat-message-editor";
+const PROSEMIRROR_ANCHOR_SELECTOR = 'prose-mirror#chat-message, prose-mirror.chat-input[name="message"], prosemirror-editor, .chat-message-editor';
 const PROSEMIRROR_BLOCK_SEPARATOR = "\n";
 const PROSEMIRROR_LEAF_SEPARATOR = "\n";
 const CHAT_INPUT_SELECTORS = [
