@@ -1,4 +1,8 @@
 import GenericDiceMap from "./templates/template.js";
+import {
+	getChatInputValue,
+	setChatInputValue
+} from "../chat-compat.js";
 
 export default class dccDiceMap extends GenericDiceMap {
 	// Redundant, buttons don't keep lit up on use
@@ -49,7 +53,8 @@ export default class dccDiceMap extends GenericDiceMap {
 			button.addEventListener("click", (event) => {
 				event.preventDefault();
 				const chat = this.textarea;
-				let chatVal = chat.value;
+				if (!chat) return;
+				let chatVal = getChatInputValue(chat);
 				const matchString = /(\d+)d(\d+)/;
 
 				// Find the first dice on the line to update
@@ -68,7 +73,7 @@ export default class dccDiceMap extends GenericDiceMap {
 				}
 
 				// Update the value.
-				chat.value = chatVal;
+				setChatInputValue(chatVal, chat);
 			});
 		}
 	}
