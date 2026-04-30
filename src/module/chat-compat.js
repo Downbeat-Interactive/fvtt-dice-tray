@@ -1,4 +1,7 @@
 const PROSEMIRROR_INPUT_SELECTORS = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"prose-mirror.chat-input",
 	'prosemirror-editor[name="content"]',
 	"prosemirror-editor",
 	"#chat-form .ProseMirror",
@@ -7,8 +10,8 @@ const PROSEMIRROR_INPUT_SELECTORS = [
 	".editor.prosemirror",
 	".chat-message-editor"
 ];
-const PROSEMIRROR_EDITOR_SELECTOR = 'prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
-const PROSEMIRROR_ANCHOR_SELECTOR = "prosemirror-editor, .chat-message-editor";
+const PROSEMIRROR_EDITOR_SELECTOR = 'prose-mirror#chat-message, prose-mirror.chat-input[name="message"], prosemirror-editor[name="content"], prosemirror-editor, .ProseMirror, .editor.prosemirror';
+const PROSEMIRROR_ANCHOR_SELECTOR = 'prose-mirror#chat-message, prose-mirror.chat-input[name="message"], prosemirror-editor, .chat-message-editor';
 const PROSEMIRROR_BLOCK_SEPARATOR = "\n";
 const PROSEMIRROR_LEAF_SEPARATOR = "\n";
 const CHAT_INPUT_SELECTORS = [
@@ -17,6 +20,24 @@ const CHAT_INPUT_SELECTORS = [
 	"textarea.chat-input",
 	'textarea[name="content"]',
 	'[contenteditable="true"]'
+];
+const CHAT_INPUT_CONTAINER_SELECTOR = "#chat-form, .chat-form";
+const STRICT_CHAT_INPUT_SELECTOR = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"prose-mirror.chat-input",
+	"#chat-message",
+	"textarea.chat-input"
+].join(", ");
+const DOCUMENT_CHAT_INPUT_SELECTORS = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"#chat-message",
+	"#chat-form .ProseMirror",
+	".chat-form .ProseMirror",
+	"textarea.chat-input",
+	"#chat-form textarea",
+	".chat-form textarea"
 ];
 const ROLL_COMMAND_PATTERN = /^\s*\/(gmr|br|sr|r)\b/i;
 const HTML_ENTITIES = {
@@ -39,12 +60,21 @@ function resolveElement(element) {
 	return null;
 }
 
-function queryChatElement(root, selectors) {
+function isChatInputElement(element) {
+	return !!(element?.matches?.(STRICT_CHAT_INPUT_SELECTOR) || element?.closest?.(CHAT_INPUT_CONTAINER_SELECTOR));
+}
+
+function isVisibleElement(element) {
+	if (element?.offsetParent) return true;
+	return !!element?.getClientRects?.().length;
+}
+
+function queryChatElement(root, selectors, predicate = null) {
 	const element = resolveElement(root);
 	if (!element?.querySelector) return null;
 	for (const selector of selectors) {
 		const match = element.querySelector(selector);
-		if (match) return match;
+		if (match && (!predicate || predicate(match))) return match;
 	}
 	return null;
 }
@@ -125,6 +155,9 @@ function getProseMirrorView(chatInput) {
 		if (view?.state?.doc && typeof view.dispatch === "function") return view;
 	}
 
+	const capturedView = CONFIG.DICETRAY?._chatView;
+	if (capturedView?.state?.doc && typeof capturedView.dispatch === "function") return capturedView;
+
 	const chatEditor = ui.chat?.editor;
 	const view = chatEditor?.editorView ?? chatEditor?.view;
 	if (view?.state?.doc && typeof view.dispatch === "function") return view;
@@ -152,8 +185,8 @@ export function getChatRoot() {
 }
 
 export function getChatInput() {
-	return queryChatElement(getChatRoot(), CHAT_INPUT_SELECTORS)
-		|| queryChatElement(document.body, CHAT_INPUT_SELECTORS);
+	return queryChatElement(getChatRoot(), CHAT_INPUT_SELECTORS, isChatInputElement)
+		|| queryChatElement(document.body, DOCUMENT_CHAT_INPUT_SELECTORS, isChatInputElement);
 }
 
 export function getChatInputValue(chatInput = getChatInput()) {
@@ -226,10 +259,11 @@ export function selectChatInput(chatInput = getChatInput()) {
 
 export function getChatInputAnchor() {
 	const chatInput = getChatInput();
+	if (!isVisibleElement(chatInput)) return null;
 	const prosemirrorAnchor = chatInput?.closest?.(PROSEMIRROR_ANCHOR_SELECTOR);
 	if (prosemirrorAnchor) return prosemirrorAnchor;
 	if (chatInput) return chatInput;
-	return queryChatElement(getChatRoot(), [".chat-form"]);
+	return null;
 }
 
 export function parseRollMode(formula) {
