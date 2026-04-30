@@ -21,6 +21,14 @@ const CHAT_INPUT_SELECTORS = [
 	'textarea[name="content"]',
 	'[contenteditable="true"]'
 ];
+const CHAT_INPUT_CONTAINER_SELECTOR = "#chat-form, .chat-form";
+const STRICT_CHAT_INPUT_SELECTOR = [
+	"prose-mirror#chat-message",
+	'prose-mirror.chat-input[name="message"]',
+	"prose-mirror.chat-input",
+	"#chat-message",
+	"textarea.chat-input"
+].join(", ");
 const DOCUMENT_CHAT_INPUT_SELECTORS = [
 	"prose-mirror#chat-message",
 	'prose-mirror.chat-input[name="message"]',
@@ -52,12 +60,20 @@ function resolveElement(element) {
 	return null;
 }
 
-function queryChatElement(root, selectors) {
+function isChatInputElement(element) {
+	return Boolean(element?.matches?.(STRICT_CHAT_INPUT_SELECTOR) || element?.closest?.(CHAT_INPUT_CONTAINER_SELECTOR));
+}
+
+function isVisibleElement(element) {
+	return Boolean(element?.offsetParent || element?.getClientRects?.().length);
+}
+
+function queryChatElement(root, selectors, predicate = null) {
 	const element = resolveElement(root);
 	if (!element?.querySelector) return null;
 	for (const selector of selectors) {
 		const match = element.querySelector(selector);
-		if (match) return match;
+		if (match && (!predicate || predicate(match))) return match;
 	}
 	return null;
 }
@@ -168,8 +184,8 @@ export function getChatRoot() {
 }
 
 export function getChatInput() {
-	return queryChatElement(getChatRoot(), CHAT_INPUT_SELECTORS)
-		|| queryChatElement(document.body, DOCUMENT_CHAT_INPUT_SELECTORS);
+	return queryChatElement(getChatRoot(), CHAT_INPUT_SELECTORS, isChatInputElement)
+		|| queryChatElement(document.body, DOCUMENT_CHAT_INPUT_SELECTORS, isChatInputElement);
 }
 
 export function getChatInputValue(chatInput = getChatInput()) {
@@ -242,10 +258,11 @@ export function selectChatInput(chatInput = getChatInput()) {
 
 export function getChatInputAnchor() {
 	const chatInput = getChatInput();
+	if (!isVisibleElement(chatInput)) return null;
 	const prosemirrorAnchor = chatInput?.closest?.(PROSEMIRROR_ANCHOR_SELECTOR);
 	if (prosemirrorAnchor) return prosemirrorAnchor;
 	if (chatInput) return chatInput;
-	return queryChatElement(getChatRoot(), [".chat-form"]);
+	return null;
 }
 
 export function parseRollMode(formula) {
