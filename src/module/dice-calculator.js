@@ -7,6 +7,25 @@ import { registerSettings } from "./settings.js";
 // Initialize module
 Hooks.once("init", () => {
 	foundry.applications.handlebars.loadTemplates(["modules/dice-calculator/templates/tray.html"]);
+	document.addEventListener("plugins", (event) => {
+		if (event.target?.id !== "chat-message") return;
+		const { Plugin, PluginKey } = foundry.prosemirror;
+		const key = new PluginKey("dice-calculator-chat-view");
+		event.plugins["dice-calculator"] = new Plugin({
+			key,
+			view(editorView) {
+				if (CONFIG.DICETRAY) CONFIG.DICETRAY._chatView = editorView;
+				return {
+					update(view) {
+						if (CONFIG.DICETRAY) CONFIG.DICETRAY._chatView = view;
+					},
+					destroy() {
+						if (CONFIG.DICETRAY) CONFIG.DICETRAY._chatView = null;
+					}
+				};
+			}
+		});
+	});
 });
 
 Hooks.once("i18nInit", () => {

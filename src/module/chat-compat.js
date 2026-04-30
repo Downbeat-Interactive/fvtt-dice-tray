@@ -138,6 +138,9 @@ function getProseMirrorView(chatInput) {
 		if (view?.state?.doc && typeof view.dispatch === "function") return view;
 	}
 
+	const capturedView = CONFIG.DICETRAY?._chatView;
+	if (capturedView?.state?.doc && typeof capturedView.dispatch === "function") return capturedView;
+
 	const chatEditor = ui.chat?.editor;
 	const view = chatEditor?.editorView ?? chatEditor?.view;
 	if (view?.state?.doc && typeof view.dispatch === "function") return view;
